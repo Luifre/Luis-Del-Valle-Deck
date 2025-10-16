@@ -7,102 +7,58 @@
 <style>
   :root { --bg:#050505; --fg:#eaeaea; --accent:#b7e5ff; }
 
-  /* Page baseline */
   * { box-sizing: border-box; }
   html, body {
     margin:0; height:100%;
     background:var(--bg); color:var(--fg);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    overflow:hidden; /* lock vertical */
+    overflow:hidden; /* keep horizontal only */
   }
 
   /* Horizontal scroller */
-  .track {
+  .track{
     display:flex; flex-wrap:nowrap;
     height:100vh;
     overflow-x:auto; overflow-y:hidden;
     scroll-snap-type:x mandatory; scroll-snap-stop:always;
     -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
-    /* hide scrollbar (webkit) */
   }
   .track::-webkit-scrollbar { display:none; }
 
-  /* Each slide = full viewport */
-  .slide {
+  /* Slides */
+  .slide{
     flex:0 0 100vw; height:100%;
     scroll-snap-align:center;
-    position:relative;
-    background:#111 center/cover no-repeat; /* full-bleed */
+    background:#111 center/contain no-repeat; /* full image, no cropping */
   }
 
-  /* Optional top text for slide 1 (example) */
-  .overlay {
-    position:absolute; inset:0;
-    display:flex; flex-direction:column; justify-content:flex-end;
-    padding:6vw; gap:1.1rem;
-    background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.45) 85%);
-  }
-  .title { margin:0; font-size:clamp(28px,5vw,64px); letter-spacing:.02em; font-weight:700; color:var(--accent); }
-  .sub   { margin:0; font-size:clamp(14px,1.6vw,20px); opacity:.9; }
-  .tag   { margin:.25rem 0 0; font-size:clamp(13px,1.4vw,18px); color:#d8d8d8; opacity:.9; }
-
-  /* Cinematic edge fades (fixed) */
-  .edge {
-    position:fixed; top:0; bottom:0; width:10vw; pointer-events:none; z-index:5;
-  }
-  .edge.left  { left:0; background:linear-gradient(90deg, rgba(5,5,5,.85), rgba(5,5,5,0)); }
-  .edge.right { right:0; background:linear-gradient(270deg, rgba(5,5,5,.85), rgba(5,5,5,0)); }
-
-  /* Nav buttons */
-  .nav {
+  /* Minimal nav */
+  .nav{
     position:fixed; right:1.25rem; bottom:1.25rem; z-index:10; display:flex; gap:.5rem;
   }
-  .btn {
-    background:rgba(255,255,255,.1); color:var(--fg);
-    border:1px solid rgba(255,255,255,.18);
+  .btn{
+    background:rgba(255,255,255,.12); color:var(--fg);
+    border:1px solid rgba(255,255,255,.2);
     padding:.6rem 1rem; border-radius:12px; cursor:pointer; font-size:1rem;
-    backdrop-filter: blur(6px);
   }
-  .btn:active { transform: translateY(1px); }
+  .btn:active{ transform:translateY(1px); }
 
   /* Progress dots */
-  .dots {
+  .dots{
     position:fixed; left:50%; transform:translateX(-50%);
     bottom:1.25rem; display:flex; gap:.4rem; z-index:9;
     padding:.3rem .55rem; border-radius:999px;
-    background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.12);
-    backdrop-filter: blur(6px);
+    background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12);
+    backdrop-filter: blur(4px);
   }
-  .dot {
-    width:8px; height:8px; border-radius:50%;
-    background:rgba(255,255,255,.35);
-  }
-  .dot.active { background:var(--accent); box-shadow:0 0 0 2px rgba(183,229,255,.25); }
-
-  /* Keep horizontal on all screens (no vertical fallback) */
-  @media (max-width:640px){
-    .overlay { padding:10vw; }
-  }
+  .dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.35); }
+  .dot.active{ background:var(--accent); box-shadow:0 0 0 2px rgba(183,229,255,.25); }
 </style>
 </head>
 <body>
 
-<!-- Cinematic edge fades -->
-<div class="edge left"></div>
-<div class="edge right"></div>
-
-<!-- Slides -->
 <div class="track" id="track">
-  <!-- Slide 1 (with optional text overlay — edit/cull as you like) -->
-  <section class="slide" style="background-image:url('1.png');">
-    <div class="overlay">
-      <h1 class="title">LUIS ALFREDO DEL VALLE COLLAZO</h1>
-      <p class="sub">Recording Artist • Producer • Mixer • Arranger • Songwriter • Musical Director</p>
-      <p class="tag">Puerto Rican producer blurring the lines between past and future.</p>
-    </div>
-  </section>
-
-  <!-- Slide 2..11 (image-only by default) -->
+  <section class="slide" style="background-image:url('1.png');"></section>
   <section class="slide" style="background-image:url('2.png');"></section>
   <section class="slide" style="background-image:url('3.png');"></section>
   <section class="slide" style="background-image:url('4.png');"></section>
@@ -115,13 +71,11 @@
   <section class="slide" style="background-image:url('11.png');"></section>
 </div>
 
-<!-- Nav buttons -->
 <div class="nav">
   <button class="btn" id="prev">← Prev</button>
   <button class="btn" id="next">Next →</button>
 </div>
 
-<!-- Progress dots -->
 <div class="dots" id="dots" aria-hidden="true"></div>
 
 <script>
@@ -131,9 +85,9 @@
 
   // Build dots
   slides.forEach((_, i) => {
-    const b = document.createElement('div');
-    b.className = 'dot' + (i===0 ? ' active' : '');
-    dots.appendChild(b);
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0 ? ' active' : '');
+    dots.appendChild(d);
   });
   const dotEls = Array.from(dots.children);
 
@@ -144,24 +98,18 @@
   document.getElementById('prev').onclick = () => go(-1);
   document.getElementById('next').onclick = () => go(1);
 
-  // Keyboard arrows
   window.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') go(1);
     if (e.key === 'ArrowLeft')  go(-1);
   });
 
-  // Update dots based on scroll position
   function updateDots(){
     const w = slides[0].getBoundingClientRect().width;
     const idx = Math.round(track.scrollLeft / w);
     dotEls.forEach((d,i)=> d.classList.toggle('active', i===idx));
   }
   track.addEventListener('scroll', () => { requestAnimationFrame(updateDots); });
-
-  // Ensure we start at first slide
-  window.addEventListener('load', () => {
-    updateDots();
-  });
+  window.addEventListener('load', updateDots);
 </script>
 
 </body>
